@@ -57,7 +57,6 @@ bank
 ├── conftest.py  # Fixtures for all tests.
 ├── __main__.py  # Startup script. Starts uvicorn.
 ├── services  # Package for different external services such as rabbit or redis etc.
-├── settings.py  # Main configuration settings for project.
 ├───api # Package contains controllers server. Handlers, startup config.
 │   └───controllers # Package with all handlers.
 ├───db # Package contains all database related stuff.
@@ -82,8 +81,7 @@ in `bank.settings.Settings.Config`.
 
 An example of .env file:
 ```bash
-BANK_RELOAD="True"
-BANK_PORT="8000"
+BANK_PORT="5000"
 BANK_ENVIRONMENT="dev"
 ```
 

@@ -314,6 +314,20 @@ files = [
 ]
 
 [[package]]
+name = "distribute"
+version = "0.7.3"
+description = "distribute legacy wrapper"
+optional = false
+python-versions = "*"
+files = [
+    {file = "distribute-0.7.3.zip", hash = "sha256:3dc7a8d059dcf72f0ead2fa2144a24ee0ef07dce816e8c3545d7345767138c5e"},
+]
+
+[package.extras]
+certs = ["certifi (==0.0.8)"]
+ssl = ["ctypes (==1.0.2)", "ssl (==1.16)", "wincertstore (==0.1)"]
+
+[[package]]
 name = "docutils"
 version = "0.20.1"
 description = "Docutils -- Python Documentation Utilities"
@@ -1560,4 +1574,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "307a655d0faab2a1a1acf62cfd7831e7fc2e3fd216dfed0a15c70d00a0c0643a"
+content-hash = "4ac836ae48aacd383487001c42a49c1c77ff134172b29676654613f02f5a59d9"
