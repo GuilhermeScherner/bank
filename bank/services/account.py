@@ -1,5 +1,7 @@
 from typing import Any, Dict
 
+from apiflask.fields import Integer
+
 from bank.services.base import BaseService
 from bank.services.models import account as account_model
 
@@ -7,35 +9,34 @@ from bank.services.models import account as account_model
 class AccountService(BaseService):
     """Account service."""
 
-    async def balance(
+    def balance(
         self,
-        balance_model: account_model.BalanceRequest,
+        user_id: int | Integer,
     ) -> Dict[str, Any]:
         """
         Get the balance of an account.
 
-        :param balance_model: BalanceRequest
+        :param user_id: user id
         :return: BalanceResponse
         """
-        return {}
+        result = self._validate_account(user_id)
+        return result.to_dict()
 
-    async def change_state(
+    def change_state(
         self,
-        change_state_model: account_model.ChangeStateRequest,
+        change_state_request: account_model.ChangeStateRequest,
     ) -> Dict[str, Any]:
         """
         Change the state of an account.
 
-        :param change_state_model: ChangeStateRequest
+        :param change_state_request: ChangeStateRequest
         :return: ChangeStateResponse
         """
-        return {}
+        account = self._validate_account(change_state_request.user_id)
 
-    async def orders(self, orders_model: account_model.OrdersRequest) -> Dict[str, Any]:
-        """
-        Get all orders from an account.
+        self.repo.account.update_by_id(
+            account.id,
+            {"is_active": change_state_request.state},
+        )
 
-        :param orders_model: OrdersRequest
-        :return: OrdersResponse
-        """
-        return {}
+        return account.to_dict()

@@ -1,52 +1,36 @@
-from typing import Any
+from typing import Any, Dict
 
-from flask_httpauth import HTTPBasicAuth
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.pool import NullPool
+import jwt
+from apiflask import HTTPError, HTTPTokenAuth
 
-from bank.db.uow import UnitOfWork
+from bank.constants import UNAUTHORIZED
+from bank.db.database import RepositoryFactory
 from bank.services.account import AccountService
 from bank.services.transaction import TransactionService
 from bank.services.user import UserService
+from bank.settings import settings
 
-engine = create_async_engine("database_url", poolclass=NullPool)
-
-auth = HTTPBasicAuth()
-
-
-async def get_uow() -> Any:
-    """
-    Get the unit of work.
-
-    :yield: UnitOfWork
-    """
-    session = AsyncSession(engine, expire_on_commit=True)
-    try:
-        yield UnitOfWork(session)
-    except Exception:
-        await session.rollback()
-    finally:
-        await session.close()
+auth = HTTPTokenAuth(scheme="Bearer")
 
 
-def user_service_dependency(uow: UnitOfWork = get_uow()) -> UserService:
+def user_service_dependency() -> UserService:
     """
     Get the user service.
 
-    :param uow: unit of work.
     :return: UserService
     """
-    return UserService(uow)
+    repo: RepositoryFactory = RepositoryFactory()
+    return UserService(repo)
 
 
-def transaction_service_dependency(uow: UnitOfWork = get_uow()) -> TransactionService:
+def transaction_service_dependency() -> TransactionService:
     """
     Get the transaction service.
 
-    :param uow: unit of work.
     :return: TransactionService
     """
-    return TransactionService(uow)
+    repo: RepositoryFactory = RepositoryFactory()
+    return TransactionService(repo)
 
 
 def account_service_dependency() -> AccountService:
@@ -55,5 +39,28 @@ def account_service_dependency() -> AccountService:
 
     :return: AccountService
     """
-    uow: UnitOfWork = get_uow()
-    return AccountService(uow)
+    repo: RepositoryFactory = RepositoryFactory()
+    return AccountService(repo)
+
+
+@auth.verify_token
+def extract_user_data(token: str) -> Dict[str, Any]:
+    """
+    Extract user data from the token.
+
+    :param token: Token
+    :return: User data
+    :raises HTTPError: Invalid token
+    """
+    try:
+        payload = jwt.decode(token, settings.bank_secret_key, algorithms=["HS256"])
+
+        return {
+            "id": payload.get("user_id"),
+            "username": payload.get("username"),
+        }
+    except jwt.exceptions.DecodeError:
+        raise HTTPError(
+            UNAUTHORIZED["code"],
+            message=UNAUTHORIZED["message"].format("Token"),
+        )

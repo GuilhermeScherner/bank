@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from apiflask import APIBlueprint
 
 from bank.api.dependencies.services import auth, user_service_dependency
@@ -8,37 +10,35 @@ router = APIBlueprint("user", __name__)
 
 
 @router.post("")
-@auth.login_required
-@router.input(user_models.CreateUserRequest)
+@router.auth_required(auth=auth)
+@router.input(user_models.CreateUserRequest(partial=True))
 @router.output(user_models.CreateUserResponse)
-async def create_user(
-    user_data: user_models.CreateUserRequest,
+def create_user_api(
+    json_data: Dict[str, Any],
     user_service: UserService = user_service_dependency(),
-) -> user_models.CreateUserResponse:
+) -> Dict[str, Any]:
     """
     Create user.
 
-    :param user_data: user data.
+    :param json_data: user data.
     :param user_service: user service.
     :return: create user response.
     """
-    result = await user_service.create_user(user_data)
-    return user_models.CreateUserResponse(**result)
+    return user_service.create_user(json_data)
 
 
 @router.post("/login")
 @router.input(user_models.LoginRequest)
 @router.output(user_models.LoginResponse)
-async def login(
-    login_data: user_models.LoginRequest,
+def login(
+    json_data: Dict[str, Any],
     user_service: UserService = user_service_dependency(),
-) -> user_models.LoginResponse:
+) -> Dict[str, Any]:
     """
     Login user.
 
-    :param login_data: login data.
+    :param json_data: login data.
     :param user_service: user service.
     :return: login response.
     """
-    result = await user_service.login(login_data)
-    return user_models.LoginResponse(**result)
+    return user_service.login(json_data)

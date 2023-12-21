@@ -2,7 +2,7 @@ from typing import Any, Dict, Generic, Optional, Type, TypeVar
 
 import sqlalchemy as sa
 from apiflask import Schema
-from sqlalchemy.ext.asyncio import AsyncSession
+from flask_sqlalchemy import SQLAlchemy
 
 from bank.db.mappings.base import BaseMapping
 
@@ -13,22 +13,23 @@ MappingType = TypeVar("MappingType", bound=BaseMapping)
 class BaseRepository(Generic[MappingType]):
     """Base repository with common operations."""
 
-    def __init__(self, db: AsyncSession, mapping: Type[MappingType]) -> None:
+    def __init__(self, db: SQLAlchemy, mapping: Type[MappingType]) -> None:
         self.mapping = mapping
         self.db = db
 
-    async def add(self, obj: MappingType) -> MappingType:
+    def add(self, obj: MappingType) -> MappingType:
         """
         Add an object to the database.
 
         :param obj: object to be added
         :return: added object
         """
-        self.db.add(obj)
-        await self.db.flush([obj])
+        self.db.session.add(obj)
+        self.db.session.flush([obj])
+        self.db.session.commit()
         return obj
 
-    async def get_by_id(self, mapping_id: int) -> Optional[MappingType]:
+    def get_by_id(self, mapping_id: int) -> Optional[MappingType]:
         """
         Get an object by its id.
 
@@ -36,10 +37,10 @@ class BaseRepository(Generic[MappingType]):
         :return: Object or None
         """
         qb = sa.select(self.mapping).where(self.mapping.id == mapping_id)
-        result = await self.db.execute(qb)
+        result = self.db.session.execute(qb)
         return result.scalars().first()
 
-    async def update_by_id(
+    def update_by_id(
         self,
         mapping_id: int,
         batch: Dict[str, Any],
@@ -56,5 +57,16 @@ class BaseRepository(Generic[MappingType]):
             .where(self.mapping.id == str(mapping_id))
             .values(batch)
         )
-        await self.db.execute(qb)
-        return await self.get_by_id(mapping_id)
+        self.db.session.execute(qb)
+        self.db.session.commit()
+        return self.get_by_id(mapping_id)
+
+    def get_all(self) -> Optional[MappingType]:
+        """
+        Get all objects.
+
+        :return: all objects
+        """
+        qb = sa.select(self.mapping)
+        result = self.db.execute(qb)
+        return result.scalars().all()

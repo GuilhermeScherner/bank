@@ -1,17 +1,18 @@
 from typing import Any, Dict
 
-from sqlalchemy import Column, Float, ForeignKey, Integer
-from sqlalchemy.orm import relationship
-
-from bank.db.mappings.base import BaseMapping
+from bank.db.mappings.base import BaseMapping, db
 
 
 class Transaction(BaseMapping):
     """Transaction Mapping."""
 
-    account_id = Column(Integer, ForeignKey("account.id"))
-    account = relationship("Account", backref="transactions")
-    amount = Column(Float, default=0)
+    account_id = db.Column(db.Integer, db.ForeignKey("account.id"))
+    account = db.relationship(
+        "Account",
+        back_populates="transaction",
+        primaryjoin="Transaction.account_id == Account.id",
+    )
+    amount = db.Column(db.Float, default=0)
 
     def __repr__(self) -> str:
         return f"<Transaction(account_id={self.account_id}, amount={self.amount})>"

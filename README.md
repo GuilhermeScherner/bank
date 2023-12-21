@@ -48,6 +48,15 @@ For developer mode you can use this command:
 docker-compose -f deploy/docker-compose.dev.yml up -d --build
 ```
 
+### Credentials
+#### Username
+```bash
+user
+```
+#### Password
+```bash
+user
+```
 
 ## Project structure
 
@@ -56,11 +65,15 @@ $ tree "bank"
 bank
 ├── conftest.py  # Fixtures for all tests.
 ├── __main__.py  # Startup script. Starts uvicorn.
-├── services  # Package for different external services such as rabbit or redis etc.
+├── settings.py  # Settings variable from api.
+├── constants.py  # Constants value.
+├── services  # Package for services core system.
 ├───api # Package contains controllers server. Handlers, startup config.
 │   └───controllers # Package with all handlers.
 ├───db # Package contains all database related stuff.
-│   └───repositories # Package contains all repositories.
+│   ├───repositories # Package contains all repositories.
+│   ├───migrations # Package contains history migrations and configuratinos.
+│   └───mappings # Package contains all mappings.
 ├───services # Package for different external services such as rabbit or redis etc.
 │   └───models # Package for application models
 ├───tests # Tests for project.
@@ -122,7 +135,6 @@ For running tests on your local machine.
 pytest -vv .
 ```
 
-
 ## Runners linter
 1. Run the black.
 ```bash
@@ -143,7 +155,6 @@ poetry run isort .
 ```bash
 poetry run flake8 .
 ```
-
 
 
 ## Good Practices CI/CD

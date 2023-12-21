@@ -12,6 +12,8 @@ python-dotenv = "^1.0.0"
 flask-httpauth = "^4.8.0"
 sqlalchemy = "^2.0.23"
 werkzeug = "^3.0.1"
+pymysql = "^1.1.0"
+pyjwt = "^2.8.0"
 
 
 [tool.poetry.dev-dependencies]
@@ -52,6 +54,7 @@ allow_untyped_decorators = true
 warn_unused_ignores = false
 warn_return_any = false
 namespace_packages = true
+exclude= ["bank/db/migrations", "bank/.venv"]
 
 [tool.pytest.ini_options]
 filterwarnings = [

@@ -1,20 +1,27 @@
 from typing import Any, Dict
 
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
-
-from bank.db.mappings.base import BaseMapping
+from bank.db.mappings.base import BaseMapping, db
 
 
 class Account(BaseMapping):
     """Account Mapping."""
 
-    user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", backref="accounts")
-    balance = Column(Float, default=0)
-    daily_withdrawal_limit = Column(Float, default=1000.0)  # daily withdrawal
-    is_active = Column(Boolean, default=True)
-    account_type = Column(String(10), default="current")
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user = db.relationship(
+        "User",
+        back_populates="account",
+        uselist=False,
+        primaryjoin="Account.user_id == User.id",
+    )
+    transaction = db.relationship(
+        "Transaction",
+        back_populates="account",
+        primaryjoin="Account.id == Transaction.account_id",
+    )
+    balance = db.Column(db.Float, default=0)
+    daily_withdrawal_limit = db.Column(db.Float, default=1000.0)
+    is_active = db.Column(db.Boolean, default=True)
+    account_type = db.Column(db.Integer)
 
     def __repr__(self) -> str:
         return f"<Account(user_id={self.user_id}, balance={self.balance})>"
@@ -29,4 +36,8 @@ class Account(BaseMapping):
             "id": self.id,
             "user_id": self.user_id,
             "balance": self.balance,
+            "daily_withdrawal_limit": self.daily_withdrawal_limit,
+            "is_active": self.is_active,
+            "account_type": self.account_type,
+            "created_at": self.created_at,
         }

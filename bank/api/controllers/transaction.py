@@ -1,45 +1,67 @@
+from typing import Any, Dict
+
 from apiflask import APIBlueprint
 
 from bank.api.dependencies.services import auth, transaction_service_dependency
 from bank.services.models import transaction as transaction_model
+from bank.services.models.user import UserBase
 from bank.services.transaction import TransactionService
 
 router = APIBlueprint("transaction", __name__)
 
 
-@router.post("/deposit")
-@auth.login_required
+@router.patch("/deposit")
+@router.auth_required(auth=auth)
 @router.input(transaction_model.DepositRequest)
 @router.output(transaction_model.DepositResponse)
-async def deposit(
-    deposit_model: transaction_model.DepositRequest,
+def deposit(
+    json_data: Dict[str, Any],
     transaction_service: TransactionService = transaction_service_dependency(),
-) -> transaction_model.DepositResponse:
+) -> Dict[str, Any]:
     """
     Deposit money into an account.
 
-    :param deposit_model: DepositRequest
+    :param json_data: DepositRequest
     :param transaction_service: TransactionService
     :return: DepositResponse
     """
-    result = await transaction_service.deposit(deposit_model)
-    return transaction_model.DepositResponse(**result)
+    user = UserBase(user_id=auth.current_user["id"], username=auth.current_user["username"])  # type: ignore
+    json_data.update({"user_id": user.id})
+    return transaction_service.deposit(json_data)
 
 
 @router.post("/withdraw")
-@auth.login_required
+@router.auth_required(auth=auth)
 @router.input(transaction_model.WithdrawRequest)
 @router.output(transaction_model.WithdrawResponse)
-async def withdraw(
-    withdraw_model: transaction_model.WithdrawRequest,
+def withdraw(
+    json_data: Dict[str, Any],
     transaction_service: TransactionService = transaction_service_dependency(),
-) -> transaction_model.WithdrawResponse:
+) -> Dict[str, Any]:
     """
     Withdraw money from an account.
 
-    :param withdraw_model: WithdrawRequest
+    :param json_data: WithdrawRequest
     :param transaction_service: TransactionService
     :return: WithdrawResponse
     """
-    result = await transaction_service.withdraw(withdraw_model)
-    return transaction_model.WithdrawResponse(**result)
+    user = UserBase(user_id=auth.current_user["id"], username=auth.current_user["username"])  # type: ignore
+    json_data.update({"user_id": user.id})
+    return transaction_service.withdraw(json_data)
+
+
+@router.get("/orders")
+@router.auth_required(auth=auth)
+@router.output(transaction_model.OrdersResponse)
+def orders(
+    transaction_service: TransactionService = transaction_service_dependency(),
+) -> Dict[str, Any]:
+    """
+    Get all orders from an account.
+
+    :param transaction_service: TransactionService
+    :return: OrdersResponse
+    """
+    user = UserBase(user_id=auth.current_user["id"], username=auth.current_user["username"])  # type: ignore
+
+    return transaction_service.orders(user.id)

@@ -1,50 +1,37 @@
-import re
-
-from sqlalchemy import Column, DateTime, Integer
-from sqlalchemy.ext.declarative import as_declarative
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import declarative_mixin
-from sqlalchemy.sql import func
-from sqlalchemy.util import classproperty
 
-
-def camel_to_snake(name: str) -> str:
-    """
-    Convert CamelCase to snake_case.
-
-    :param name: CamelCase string.
-    :return: snake_case string.
-    """
-    return re.sub("(?<!^)(?=[A-Z])", "_", name).lower()
+db = SQLAlchemy()
 
 
 @declarative_mixin
 class TimestampedMixin:
     """Generate times Created and Updated."""
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-
-
-@declarative_mixin
-class TableNameMixin:
-    """Generate Table Name."""
-
-    @classproperty
-    def __tablename__(cls) -> str:  # noqa: N805
-        return camel_to_snake(cls.__name__)  # type: ignore
-
-
-@declarative_mixin
-class IDMixin:
-    """Generate ID."""
-
-    id = Column(
-        Integer,
-        autoincrement=True,
-        unique=True,
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        server_default=db.func.now(),
+    )
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        onupdate=db.func.now(),
     )
 
 
-@as_declarative()
-class BaseMapping(TimestampedMixin, TableNameMixin, IDMixin):
+@db.declarative_mixin
+class IDMixin:
+    """Generate ID."""
+
+    id = db.Column(
+        db.Integer,
+        autoincrement=True,
+        unique=True,
+        primary_key=True,
+    )
+
+
+@db.as_declarative()
+class BaseMapping(TimestampedMixin, IDMixin, db.Model):  # type: ignore
     """Base Mapping for all class."""
+
+    __abstract__ = True

@@ -3,15 +3,13 @@ from __future__ import annotations
 from functools import cached_property
 from typing import Any
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from bank.db.repositories.user import UserRepository
 
 
 class UnitOfWork:
     """Unit of work."""
 
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: Any) -> None:
         self.session = session
 
     async def __aenter__(self) -> UnitOfWork:

@@ -1,12 +1,8 @@
 from apiflask import APIFlask
-from dotenv import dotenv_values
-from flask_httpauth import HTTPBasicAuth
+from flask_migrate import Migrate
 
 from bank.api.routers import include_router
-
-auth = HTTPBasicAuth()
-
-config = dotenv_values(".env.local")
+from bank.settings import settings
 
 app = APIFlask(
     __name__,
@@ -14,13 +10,17 @@ app = APIFlask(
     version="0.1.0",
 )
 
+app.config["SQLALCHEMY_DATABASE_URI"] = settings.database_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+
 include_router(app)
 
+with app.app_context():
+    from bank.db.mappings.base import db  # noqa: WPS433, F401
+
+    db.init_app(app)
+    migrate = Migrate(app, db, directory="./bank/db/migrations")
+
 if __name__ == "__main__":
-    port = int(config.get("BANK_PORT")) or None  # type: ignore
-    debug = bool(config.get("BANK_DEBUG", False))
-    app.run(
-        host=config.get("BANK_HOST"),
-        port=port,
-        debug=debug,
-    )
+    app.run()
