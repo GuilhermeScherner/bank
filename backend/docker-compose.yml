@@ -1,0 +1,30 @@
+version: '3.9'  # Specify the Docker Compose version
+
+services:
+  apiflask:
+    build: .  # Build the image from the current directory
+    ports:
+      - "5000:5000"  # Map port 5000 of the container to port 5000 on the host
+    env_file:
+      - ./.env.local
+    environment:
+      - BANK_DATABASE_URL=mysql+pymysql://admin:admin@mysql:3306/bank
+    depends_on:
+      - mysql  # Ensure the database is up before starting the application
+
+  mysql:
+    image: mysql:latest  # Use the latest MySQL image
+    container_name: mysql  # Name the container
+    restart: always  # Restart the container if it fails
+    environment:
+      MYSQL_ROOT_PASSWORD: admin  # Set the root password
+      MYSQL_DATABASE: bank  # Create a database on startup
+      MYSQL_USER: admin  # Create a user with access to the database
+      MYSQL_PASSWORD: admin  # Set the user's password
+    ports:
+      - "3306:3306"  # Map port 3306 of the container to port 3306 on the host
+    volumes:
+      - mysql-data:/var/lib/mysql  # Create a volume to persist data
+
+volumes:
+  mysql-data:  # Define the volume for MySQL data
